@@ -1,0 +1,17 @@
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background: black;
+    color: white;
+    border-radius: 5px;
+    font-size: 14px;
+    z-index: 1000;
+    opacity: 0.9;
+    transition: opacity 0.3s ease-in-out;
+}
+  
+.toast:hover {
+    opacity: 1;
+}

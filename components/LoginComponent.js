@@ -10,7 +10,7 @@ const LoginComponent = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    router.push('/contacts');
+    router.push('/profile');
     /*
     
     if (!email || !password) {

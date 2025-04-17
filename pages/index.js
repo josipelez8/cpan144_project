@@ -9,11 +9,11 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    const username = localStorage.getItem('username')
-    if (!username) {
+    const token = localStorage.getItem('token')
+    if (!token) {
       router.push('/login')
     } else {
-      router.push('/contacts')
+      router.push('/profile')
     }
   }, [])
 

@@ -1,15 +1,40 @@
 import { useRouter } from 'next/router'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import '../styles/topicabout.css'
 
 const TopicAboutComponent = () => {
   const router = useRouter()
   const { contact } = router.query
+  const [desc, setDesc] = useState("");
+
+  useEffect(() => {
+      console.log("Getting description...");
+
+      const username = localStorage.getItem('username')
+      const token = localStorage.getItem('token')
+      if (token && username) {
+        // load topics from server
+        fetch('http://localhost:4000/api/topic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username: username, token: token, topic: contact, action: "getTopicsAbout" }),
+        })
+        .then(res => res.json())
+        .then(data => {
+          setDesc(data.desc);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      }
+    }, [router.query, router.isReady]);
 
   return (
     <div className="editor-container">
-      <h1>Topic About { contact }</h1>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+      <h1>About { contact }</h1>
+      <p>{ desc }</p>
     </div>
   );
 }

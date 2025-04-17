@@ -1,64 +1,103 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import ToastComponent from "./ToastComponent"; // Import the toast component
+import ToastComponent from "./ToastComponent";
 import "../styles/sidebar.css";
 
-const pages = [
-  { name: "Change Users", path: "/" },
-  { name: "Profile", path: "/profile" },
-  { name: "@Cute", path: "/topic?contact=Cute" },
-  { name: "About @Cute", path: "/topicabout?contact=Cute" },
-
-  { name: "@Sports", path: "/topic?contact=Sports" },
-  { name: "About @Sports", path: "/topicabout?contact=Sports" },
-
-  { name: "@Technology", path: "/topic?contact=Technology" },
-  { name: "About @Technology", path: "/topicabout?contact=Technology" },
-
-  { name: "@News", path: "/topic?contact=News" },
-  { name: "About @News", path: "/topicabout?contact=News" },
-
-  { name: "@Funny", path: "/topic?contact=Funny" },
-  { name: "About @Funny", path: "/topicabout?contact=Funny" },
-];
+let topics = {};
 
 const LayoutComponent = ({ children }) => {
   const router = useRouter();
   const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
-    const handleShowToast = (event) => {
-      setToastMessage(event.detail);
-    };
+    try {
+      topics = JSON.parse(localStorage.getItem('topics')) || {};
+    } catch (e) {
+      topics = {};
+    }
 
+    const username = localStorage.getItem('username')
+    const token = localStorage.getItem('token')
+    if (token && username) {
+      // load topics from server
+      fetch('http://localhost:4000/api/topic', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: username, token: token, action: "getTopics" }),
+      })
+      .then(res => res.json())
+      .then(data => {
+        topics = data;
+        localStorage.setItem('topics', JSON.stringify(data) );
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+
+    const handleShowToast = (event) => setToastMessage(event.detail);
     window.addEventListener("showToast", handleShowToast);
     return () => window.removeEventListener("showToast", handleShowToast);
   }, []);
+
+  /*
+    <li className={router.pathname === "/" ? "active" : ""}>
+            <Link href="/">Change Users</Link>
+          </li>
+  */
 
   return (
     <div className="container">
       {/* Sidebar Navigation */}
       <nav className="sidebar">
-        <img src="../assets/logo.png" width={128} height={128}></img>
-        <h1></h1>
+        <img src="../assets/logo.png" width={128} height={128} alt="Logo" />
         <h2>Instant Connect</h2>
         <ul>
-          {pages.map((page) => (
-            <li key={page.path} className={router.pathname === page.path ? "active" : ""}>
-              <Link href={page.path}>{page.name}</Link>
+          <li className={router.pathname === "/profile" ? "active" : ""}>
+            <Link href="/profile">Profile</Link>
+          </li>
+
+          {Object.keys(topics).map((topic) => (
+            <li key={topic}>
+              <div className="link-pair">
+                <Link
+                  href={`/topic?contact=${topic}`}
+                  className={
+                    router.pathname === "/topic" &&
+                    router.query.contact === topic
+                      ? "active"
+                      : ""
+                  }
+                >
+                  @{topic}
+                </Link>
+                <Link
+                  href={`/topicabout?contact=${topic}`}
+                  className={
+                    router.pathname === "/topicabout" &&
+                    router.query.contact === topic
+                      ? "active"
+                      : ""
+                  }
+                >
+                  About
+                </Link>
+              </div>
             </li>
           ))}
         </ul>
       </nav>
 
       {/* Main Content */}
-      <main className="content">
-        {children}
-      </main>
+      <main className="content">{children}</main>
 
       {/* Toast Notification */}
-      {toastMessage && <ToastComponent message={toastMessage} onClose={() => setToastMessage("")} />}
+      {toastMessage && (
+        <ToastComponent message={toastMessage} onClose={() => setToastMessage("")} />
+      )}
     </div>
   );
 };

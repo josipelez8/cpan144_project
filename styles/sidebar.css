@@ -45,3 +45,12 @@
     padding: 20px;
   }
   
+  .link-pair {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+  }
+  
+  .link-pair a {
+    flex: 1;
+  }

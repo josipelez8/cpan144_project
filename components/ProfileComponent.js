@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import '../styles/profile.css'
 
 const ProfileComponent = () => {
@@ -6,6 +6,65 @@ const ProfileComponent = () => {
   const [birthday, setBirthday] = useState('1990-01-01');
   const [image, setImage] = useState('../assets/profile_default.jpg');
   const [color, setColor] = useState('#e0f7fa');
+
+  // Update profile on first load
+  useEffect(() => {
+    const username = localStorage.getItem('username')
+    const token = localStorage.getItem('token')
+    if (!token || !username) {
+      return;
+    }
+
+    fetch('http://localhost:4000/api/profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username: username, token: token, set: null }),
+    })
+    .then(res => res.json())
+    .then(data => {
+      setName(data.name);
+      setBirthday(data.birthday);
+      setColor(data.color);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+
+  }, []);
+
+  // Send data to server to update profile
+  const handleApplyClick = () => {
+    const username = localStorage.getItem('username')
+    const token = localStorage.getItem('token')
+    if (!token || !username) {
+      return;
+    }
+
+    fetch('http://localhost:4000/api/profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username: username, token: token, set: {
+        name: name,
+        birthday: birthday,
+        color: color
+      } }),
+    })
+    .then(res => res.json())
+    .then(data => {
+      //setName(data.name);
+      //setBirthday(data.birthday);
+      //setColor(data.color);
+      alert("Profile Updated Successfully!");
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  };
+
 
   return (
     <div className="editor-container">
@@ -31,15 +90,8 @@ const ProfileComponent = () => {
         </div>
 
         <div className="form-field">
-          <label>Image URL<br />
-          <button type="button" className="upload-button">
-              Choose File
-            </button>
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-            />
+          <label>Save Changes<br />
+          <button onClick={handleApplyClick} type="button" className="upload-button">Apply</button>
           </label>
         </div>
 
